@@ -58,6 +58,7 @@ instagram-reel-analyzer/
 ├── users.db            # SQLite database for users
 ├── requirements.txt    # Required packages
 └── README.md           # Project documentation
+
 📌 Notes
 Reels are fetched using headless Chrome via Selenium.
 
@@ -69,9 +70,12 @@ If Instagram structure changes, scraping logic might need updates.
 
 🧪 Example Reels Format
 text
+
 Copy code
 https://www.instagram.com/reel/DKZ0YRPzDBz/
+
 https://www.instagram.com/reel/DK9oEIPvECT/
+
 📦 Deployment Options
 ✅ Deploy on Streamlit Cloud (GUI-based)
 

@@ -3,12 +3,22 @@ import pandas as pd
 import re
 import time
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
 from auth import show_login_page
 
 st.set_page_config(page_title="Instagram Reel Analyzer", layout="wide")
+
+def get_chrome_driver():
+    options = Options()
+    options.binary_location = "/usr/bin/chromium"  # Path for Chromium on Render
+    options.add_argument("--headless=new")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--window-size=1920,1080")
+
+    return webdriver.Chrome(service=Service(), options=options)
 
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
@@ -62,14 +72,7 @@ if st.session_state.logged_in:
     if st.button("Analyze Reels") and urls:
         st.info("🔍 Fetching reels data... please wait")
 
-        options = Options()
-        options.add_argument("--headless=new")
-        options.add_argument("--disable-gpu")
-        options.add_argument("--no-sandbox")
-        options.add_argument("--window-size=1920,1080")
-
-        driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-
+        driver = get_chrome_driver()
         data = []
 
         for url in urls:
@@ -108,4 +111,3 @@ if st.session_state.logged_in:
 
 else:
     show_login_page()
-

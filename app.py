@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import instaloader
 import re
+import os
 from auth import show_login_page
 
 st.set_page_config(page_title="Instagram Reel Analyzer", layout="wide")
@@ -15,6 +16,9 @@ def extract_shortcode(url):
 @st.cache_resource
 def get_loader():
     loader = instaloader.Instaloader()
+    username = os.getenv("IG_USERNAME")
+    password = os.getenv("IG_PASSWORD")
+    loader.login(username, password)
     return loader
 
 def get_reel_likes(shortcode):

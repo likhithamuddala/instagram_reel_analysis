@@ -18,7 +18,7 @@ def get_chrome_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--window-size=1920,1080")
 
-    return webdriver.Chrome(service=Service(), options=options)
+    return webdriver.Chrome(service=Service("/usr/bin/chromedriver"), options=options)
 
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False

@@ -1,5 +1,5 @@
-[server]
-headless = true
-enableCORS = false
-enableXsrfProtection = false
-port = 8501
+[instagram]
+sessionid = "71333977052%3AovyhBQWTygaU2h%3A15%3AAYeQY2raH0r-6kywAQ3icqVzfj_u6iL7puC4CilW8A"
+csrftoken = "X4z0eYBMDv94ccpZqo2v1frEDEqOCU77"
+ds_user_id = ""71333977052
+mid = "aCwHewALAAGCaarw5PsGlCd-2Iz0"

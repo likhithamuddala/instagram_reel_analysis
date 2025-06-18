@@ -109,10 +109,10 @@ if st.button("Analyze Reels"):
             top_views = max(results, key=lambda r: (isinstance(r["views"], int), r["views"]))
 
             st.subheader("🎯 Top Performers")
-            st.markdown(f"**By Likes:** {top_likes['likes']} ❤ — {top_likes['url']}")
+            st.markdown(f"**By Likes:** ❤️ — [link]({top_likes['url']})")
             if top_likes["thumbnail"]: st.image(top_likes["thumbnail"], width=300)
             st.markdown("---")
-            st.markdown(f"**By Views:** {top_views['views']} 👀 — {top_views['url']}")
+            st.markdown(f"**By Views:** 👀 — [link]({top_views['url']})")
             if top_views["thumbnail"]: st.image(top_views["thumbnail"], width=300)
 
             st.divider()

@@ -1,4 +1,5 @@
 import streamlit as st
+import re
 import toml
 import requests
 from bs4 import BeautifulSoup
@@ -65,31 +66,44 @@ st.title("📊 Instagram Reel Analyzer")
 st.write("Paste multiple **Instagram Reel URLs** below (one per line) to analyze performance.")
 
 def fetch_reel_data(url):
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-    response = requests.get(url, headers=headers)
-    data = {"url": url, "likes": "N/A", "views": "N/A", "caption": "No caption", "thumbnail": ""}
-    if response.status_code == 200:
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+        }
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
-        spans = soup.find_all("span")
-        for span in spans:
-            txt = span.text.strip().replace(",", "")
-            if txt.lower().endswith("likes"):
-                try: data["likes"] = int(txt.split()[0])
-                except: pass
-            elif txt.lower().endswith("views"):
-                try: data["views"] = int(txt.split()[0])
-                except: pass
 
-        thumb = soup.find("meta", attrs={"property": "og:image"})
-        if thumb:
-            data["thumbnail"] = thumb["content"]
-        cap = soup.find("meta", attrs={"property": "og:description"})
-        if cap:
-            data["caption"] = cap["content"]
+        # Extract the caption text from the page
+        caption_tag = soup.find("meta", property="og:description")
+        caption = caption_tag["content"] if caption_tag else "No caption found"
 
-    return data
+        # Extract video URL (for embedding in results)
+        video_tag = soup.find("meta", property="og:video")
+        video_url = video_tag["content"] if video_tag else None
+
+        # Extract likes from caption using regex
+        likes_match = re.search(r'(\d[\d.,KkMm]*?) likes', caption)
+        likes = likes_match.group(1) if likes_match else "N/A"
+
+        # Extract views (if possible, currently hard to get reliably without API/Selenium)
+        views = "N/A"
+
+        return {
+            "url": url,
+            "likes": likes,
+            "views": views,
+            "caption": caption,
+            "video_url": video_url,
+        }
+
+    except Exception as e:
+        return {
+            "url": url,
+            "likes": "Error",
+            "views": "Error",
+            "caption": f"Error fetching data: {str(e)}",
+            "video_url": None,
+        }
 
 # UI: input multiple URLs
 urls_text = st.text_area("📎 Reel URLs (one per line)", height=200)

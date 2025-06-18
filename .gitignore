@@ -15,3 +15,5 @@ __pycache__/
 
 # Ignore environment files
 .env
+
+session-dynamic_hero___

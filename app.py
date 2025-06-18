@@ -16,10 +16,14 @@ def extract_shortcode(url):
 @st.cache_resource
 def get_loader():
     loader = instaloader.Instaloader()
-    username = os.getenv("IG_USERNAME")
-    password = os.getenv("IG_PASSWORD")
-    loader.login(username, password)
-    return loader
+    try:
+        # Load session from file placed in project directory
+        loader.load_session_from_file("dynamic_hero___", "session-dynamic_hero___")
+        return loader
+    except Exception as e:
+        st.error("Failed to load session.")
+        st.exception(e)
+        return None
 
 def get_reel_likes(shortcode):
     """Fetch like count using Instaloader"""

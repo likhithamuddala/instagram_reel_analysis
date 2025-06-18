@@ -68,7 +68,7 @@ def show_login_page():
             if validate_user(email, password):
                 st.session_state.logged_in = True
                 st.success("✅ Logged in successfully!")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("❌ Invalid credentials!")
 

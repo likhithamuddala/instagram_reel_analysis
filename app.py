@@ -118,7 +118,7 @@ if st.button("Analyze Reels"):
             st.divider()
             st.subheader("📋 All Results")
             for r in results:
-                st.markdown(f"**URL**: {r['url']}")
+                st.markdown(f"**URL**: -[link]{r['url']}")
                 #st.markdown(f"❤️ Likes: {r['likes']} | 👀 Views: {r['views']}")
                 st.markdown(f"📝 Reason: {r['caption']}")
                 if r["thumbnail"]: st.image(r["thumbnail"], width=250)

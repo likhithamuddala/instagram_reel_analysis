@@ -6,7 +6,9 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 import chromedriver_autoinstaller
 from auth import create_users_table, register_user, login_user, delete_user
-
+import requests
+from bs4 import BeautifulSoup
+import json
 
 
 st.set_page_config(page_title="Instagram Reel Analyzer", layout="centered")
@@ -70,43 +72,31 @@ if st.sidebar.button("Delete Account"):
     st.stop()
 
 
-def fetch_reel_data_selenium(url):
-    chromedriver_autoinstaller.install()
-    options = Options()
-    options.add_argument("--headless=new")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    driver = webdriver.Chrome(options=options)
-    driver.get(url)
-    time.sleep(5)
-
-    data = {"url": url, "likes": "N/A", "views": "N/A", "caption": "No caption", "thumbnail": ""}
+def fetch_reel_data(url):
     try:
-        spans = driver.find_elements(By.TAG_NAME, "span")
-        for span in spans:
-            txt = span.text.strip().replace(",", "")
-            if txt.lower().endswith("likes"):
-                data["likes"] = int(txt.split()[0])
-            elif txt.lower().endswith("views"):
-                data["views"] = int(txt.split()[0])
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+        }
+        response = requests.get(url, headers=headers, timeout=10)
 
-        try:
-            meta_thumb = driver.find_element(By.XPATH, "//meta[@property='og:image']")
-            data["thumbnail"] = meta_thumb.get_attribute("content")
-        except:
-            pass
+        if response.status_code != 200:
+            return {"url": url, "likes": "N/A", "views": "N/A", "caption": "N/A", "thumbnail": "", "error": f"HTTP {response.status_code}"}
 
-        try:
-            caption_elem = driver.find_element(By.XPATH, "//div[@role='button']/../div/span")
-            data["caption"] = caption_elem.text
-        except:
-            pass
+        soup = BeautifulSoup(response.text, "html.parser")
+        script = soup.find("script", type="application/ld+json")
+        if script is None:
+            return {"url": url, "likes": "N/A", "views": "N/A", "caption": "N/A", "thumbnail": "", "error": "No metadata found"}
 
+        data = json.loads(script.string)
+        return {
+            "url": url,
+            "likes": data.get("interactionStatistic", {}).get("userInteractionCount", "N/A"),
+            "views": "N/A",  # Not available in public metadata
+            "caption": data.get("caption", "No caption"),
+            "thumbnail": data.get("thumbnailUrl", ""),
+        }
     except Exception as e:
-        st.error(f"Error extracting from {url}: {e}")
-    finally:
-        driver.quit()
-    return data
+        return {"url": url, "likes": "N/A", "views": "N/A", "caption": "N/A", "thumbnail": "", "error": str(e)}
 
 # UI: input multiple URLs
 urls_text = st.text_area("📎 Reel URLs (one per line)", height=200)
@@ -119,7 +109,8 @@ if st.button("Analyze Reels"):
         results = []
         with st.spinner("Fetching data… this may take time for multiple reels"):
             for url in urls:
-                results.append(fetch_reel_data_selenium(url))
+                results.append(fetch_reel_data(url))
+
 
         if results:
             # Top by likes

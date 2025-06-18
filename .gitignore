@@ -1,8 +1,23 @@
-venv/
+# Python
 __pycache__/
-*.pyc
-*.log
-users.db
+*.py[cod]
 *.sqlite3
-.DS_Store
+*.db
+
+# Environment
 .env
+.venv/
+venv/
+ENV/
+
+# Streamlit & system files
+.streamlit/
+*.log
+.DS_Store
+
+# VS Code
+.vscode/
+
+# OS-generated
+Thumbs.db
+ehthumbs.db

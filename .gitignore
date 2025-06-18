@@ -13,8 +13,7 @@ __pycache__/
 # VSCode settings
 .vscode/
 
-# Ignore environment files
+# Ignore environment and auth files
 .env
-
 config.toml
-
+session-*

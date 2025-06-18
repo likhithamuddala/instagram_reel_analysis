@@ -124,7 +124,8 @@ if st.button("Analyze Reels"):
 
             st.subheader("🎯 Top Performers")
             st.markdown(f"**By Likes:** {top_likes['likes']} ❤ — {top_likes['url']}")
-            if top_likes["thumbnail"]: st.image(top_likes["thumbnail"], width=300)
+            if "thumbnail" in top_likes and top_likes["thumbnail"]:
+            st.image(top_likes["thumbnail"], width=300)
             st.markdown("---")
             st.markdown(f"**By Views:** {top_views['views']} 👀 — {top_views['url']}")
             if top_views["thumbnail"]: st.image(top_views["thumbnail"], width=300)

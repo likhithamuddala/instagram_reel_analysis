@@ -1,36 +1,50 @@
 import streamlit as st
 import pandas as pd
-import instaloader
+import requests
 import re
-import os
+import toml
 from auth import show_login_page
 
 st.set_page_config(page_title="Instagram Reel Analyzer", layout="wide")
 
-
 def extract_shortcode(url):
-    """Extract Instagram shortcode from reel URL"""
     match = re.search(r"instagram\.com/(?:reel|p)/([A-Za-z0-9_-]+)", url)
     return match.group(1) if match else None
 
 @st.cache_resource
-def get_loader():
-    loader = instaloader.Instaloader()
-    try:
-        # Load session from file placed in project directory
-        loader.load_session_from_file("dynamic_hero___", "session-dynamic_hero___")
-        return loader
-    except Exception as e:
-        st.error("Failed to load session.")
-        st.exception(e)
-        return None
+def get_instagram_session():
+    config = toml.load("config.toml")
+    cookies = {
+        "sessionid": config["instagram"]["sessionid"],
+        "csrftoken": config["instagram"]["csrftoken"],
+        "ds_user_id": config["instagram"]["ds_user_id"],
+        "mid": config["instagram"]["mid"]
+    }
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+    session = requests.Session()
+    session.headers.update(headers)
+    session.cookies.update(cookies)
+    return session
 
 def get_reel_likes(shortcode):
-    """Fetch like count using Instaloader"""
-    loader = get_loader()
+    session = get_instagram_session()
+    query_url = "https://www.instagram.com/graphql/query/"
+    variables = f'{{"shortcode":"{shortcode}"}}'
+    params = {
+        "query_hash": "d5d763b1e2acf209d62d22d184488e57",
+        "variables": variables
+    }
+
     try:
-        post = instaloader.Post.from_shortcode(loader.context, shortcode)
-        return post.likes, None
+        response = session.get(query_url, params=params)
+        if response.status_code == 200:
+            json_data = response.json()
+            likes = json_data["data"]["shortcode_media"]["edge_media_preview_like"]["count"]
+            return likes, None
+        else:
+            return 0, f"Error {response.status_code}: {response.text}"
     except Exception as e:
         return 0, str(e)
 
@@ -42,33 +56,29 @@ def generate_insight(likes):
     elif likes < 10000:
         return "📈 Moderate engagement — might be reaching a specific audience with decent interaction."
     elif likes < 50000:
-        return "💡 Good performance — likely due to relevant hashtags, appealing visuals, or a semi-viral push."
+        return "💡 Good performance — relevant hashtags, appealing visuals, or a semi-viral push."
     elif likes < 90000:
-        return "🚀 Strong content — possibly using trending audio, good editing, or posted at the right time."
+        return "🚀 Strong content — trending audio, good editing, or great timing."
     elif likes < 200000:
-        return "🔥 Viral reel — high engagement and visibility, possibly featured in explore or trending."
+        return "🔥 Viral reel — high engagement and visibility, possibly featured in explore."
     elif likes < 500000:
-        return "💥 Very viral — massive reach, likely boosted by shares, high retention, or celebrity creator."
+        return "💥 Very viral — massive reach, likely boosted by shares, high retention."
     elif likes < 1000000:
-        return "🌍 Explosive reach — global audience impact, frequently reshared, possibly cross-platform trending."
+        return "🌍 Explosive reach — global audience impact, possibly cross-platform trending."
     else:
-        return "👑 Ultra-viral content — mega influencer or cultural moment. This is the top 1% of reels on Instagram."
+        return "👑 Ultra-viral content — mega influencer or cultural moment."
 
 # Session state
 if 'logged_in' not in st.session_state:
     st.session_state.logged_in = False
 
-# MAIN APP
 if st.session_state.logged_in:
-    st.title("📊 Instagram Reel Analyzer ")
+    st.title("📊 Instagram Reel Analyzer")
 
-    # Info box explaining why only Likes
-    with st.expander("❓ Why view & like count might not show"):
+    with st.expander("❓ Why only Likes?"):
         st.markdown("""
-            Instagram restricts view count access to logged-in users for privacy and platform protection. As this tool works without login (for user safety), view counts can't be fetched directly.
-
-            👉 So we rely only on likes to analyze performance.
-            """)
+        Instagram hides view counts from public APIs. We use only like counts via cookies for safe access.
+        """)
 
     with st.sidebar:
         if st.button("🔓 Logout"):
@@ -86,7 +96,7 @@ if st.session_state.logged_in:
         for i, url in enumerate(urls):
             shortcode = extract_shortcode(url)
             if not shortcode:
-                errors.append(f"Invalid URL format: {url}")
+                errors.append(f"Invalid URL: {url}")
                 continue
 
             likes, err = get_reel_likes(shortcode)
@@ -111,14 +121,9 @@ if st.session_state.logged_in:
 
         if not df[df["Likes"] > 0].empty:
             st.bar_chart(df.set_index("URL")["Likes"])
-
-            # 🔥 Top Performing Reel
             top_reel = df.sort_values(by="Likes", ascending=False).iloc[0]
             st.subheader("🔥 Top Performing Reel")
             st.markdown(f"👉 [View Reel]({top_reel['URL']}) — 💖 **{top_reel['Likes']:,} likes**")
-            insight = generate_insight(top_reel['Likes'])
-            st.markdown(f"📌 **Insight:** {insight}")
-
-
+            st.markdown(f"📌 **Insight:** {generate_insight(top_reel['Likes'])}")
 else:
     show_login_page()

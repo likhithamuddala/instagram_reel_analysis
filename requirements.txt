@@ -1,4 +1,4 @@
 streamlit
-pandas
-instaloader
-bcrypt
+selenium
+chromedriver-autoinstaller
+toml

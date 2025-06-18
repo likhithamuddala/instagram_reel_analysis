@@ -1,19 +1,8 @@
-# Ignore Python virtual environments
 venv/
-
-# Ignore Python cache files
 __pycache__/
-*.py[cod]
-*.pyo
-
-# Ignore database and local settings
+*.pyc
+*.log
+users.db
 *.sqlite3
-*.db
-
-# VSCode settings
-.vscode/
-
-# Environment and session files
+.DS_Store
 .env
-config.toml
-session-*

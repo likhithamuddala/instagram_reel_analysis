@@ -1,6 +1,5 @@
 import streamlit as st
 import re
-import toml
 import requests
 from bs4 import BeautifulSoup
 from auth import create_users_table, register_user, login_user, delete_user
@@ -65,6 +64,22 @@ st.set_page_config(page_title="Instagram Reel Analyzer", layout="centered")
 st.title("📊 Instagram Reel Analyzer")
 st.write("Paste multiple **Instagram Reel URLs** below (one per line) to analyze performance.")
 
+def parse_number(value):
+    if isinstance(value, (int, float)):
+        return value
+    if not isinstance(value, str):
+        return 0
+    value = value.replace(",", "").replace(" ", "")
+    try:
+        if "K" in value.upper():
+            return float(value.upper().replace("K", "")) * 1_000
+        elif "M" in value.upper():
+            return float(value.upper().replace("M", "")) * 1_000_000
+        else:
+            return float(value)
+    except:
+        return 0
+
 def fetch_reel_data(url):
     try:
         headers = {
@@ -73,28 +88,28 @@ def fetch_reel_data(url):
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Extract the caption text from the page
-        caption_tag = soup.find("meta", property="og:description")
-        caption = caption_tag["content"] if caption_tag else "No caption found"
-
-        # Extract video URL (for embedding in results)
-        video_tag = soup.find("meta", property="og:video")
-        video_url = video_tag["content"] if video_tag else None
-
-        # Extract likes from caption using regex
-        likes_match = re.search(r'(\d[\d.,KkMm]*?) likes', caption)
-        likes = likes_match.group(1) if likes_match else "N/A"
-
-        # Extract views (if possible, currently hard to get reliably without API/Selenium)
-        views = "N/A"
-
-        return {
+        data = {
             "url": url,
-            "likes": likes,
-            "views": views,
-            "caption": caption,
-            "video_url": video_url,
+            "likes": "N/A",
+            "views": "N/A",
+            "caption": "No caption",
+            "video_url": None,
+            "thumbnail": ""
         }
+
+        caption_tag = soup.find("meta", property="og:description")
+        data["caption"] = caption_tag["content"] if caption_tag else "No caption found"
+
+        video_tag = soup.find("meta", property="og:video")
+        data["video_url"] = video_tag["content"] if video_tag else None
+
+        thumb_tag = soup.find("meta", property="og:image")
+        data["thumbnail"] = thumb_tag["content"] if thumb_tag else ""
+
+        likes_match = re.search(r'(\d[\d.,KkMm]*) likes', data["caption"])
+        data["likes"] = likes_match.group(1) if likes_match else "N/A"
+
+        return data
 
     except Exception as e:
         return {
@@ -103,9 +118,9 @@ def fetch_reel_data(url):
             "views": "Error",
             "caption": f"Error fetching data: {str(e)}",
             "video_url": None,
+            "thumbnail": ""
         }
 
-# UI: input multiple URLs
 urls_text = st.text_area("📎 Reel URLs (one per line)", height=200)
 urls = [u.strip() for u in urls_text.split("\n") if u.strip()]
 
@@ -119,15 +134,18 @@ if st.button("Analyze Reels"):
                 results.append(fetch_reel_data(url))
 
         if results:
-            top_likes = max(results, key=lambda r: (isinstance(r["likes"], int), r["likes"]))
-            top_views = max(results, key=lambda r: (isinstance(r["views"], int), r["views"]))
+            top_likes = max(results, key=lambda r: parse_number(r["likes"]))
+            top_views = max(results, key=lambda r: parse_number(r.get("views", "0")))
 
             st.subheader("🎯 Top Performers")
             st.markdown(f"**By Likes:** {top_likes['likes']} ❤ — {top_likes['url']}")
-            if "thumbnail" in top_likes and top_likes["thumbnail"]:st.image(top_likes["thumbnail"], width=300)
+            if top_likes.get("thumbnail"):
+                st.image(top_likes["thumbnail"], width=300)
+
             st.markdown("---")
             st.markdown(f"**By Views:** {top_views['views']} 👀 — {top_views['url']}")
-            if top_views["thumbnail"]: st.image(top_views["thumbnail"], width=300)
+            if top_views.get("thumbnail"):
+                st.image(top_views["thumbnail"], width=300)
 
             st.divider()
             st.subheader("📋 All Results")
@@ -135,7 +153,8 @@ if st.button("Analyze Reels"):
                 st.markdown(f"**URL**: {r['url']}")
                 st.markdown(f"❤️ Likes: {r['likes']} | 👀 Views: {r['views']}")
                 st.markdown(f"📝 Caption: {r['caption']}")
-                if r["thumbnail"]: st.image(r["thumbnail"], width=250)
+                if r.get("thumbnail"):
+                    st.image(r["thumbnail"], width=250)
                 st.markdown("---")
         else:
             st.error("Failed to extract data from any reel.")

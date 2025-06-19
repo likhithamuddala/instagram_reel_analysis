@@ -69,17 +69,18 @@ def fetch_reel_data(url):
         "User-Agent": "Mozilla/5.0"
     }
     response = requests.get(url, headers=headers)
-    data = {"url": url, "likes": "N/A", "views": "N/A", "caption": "No caption", "thumbnail": ""}
+    data = {"url": url, "likes": 0, "views": 0, "caption": "No caption", "thumbnail": ""}
+
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
         spans = soup.find_all("span")
         for span in spans:
             txt = span.text.strip().replace(",", "")
             if txt.lower().endswith("likes"):
-                try: data["likes"] = int(txt.split()[0])
+                try: data["likes"] = int(txt.split()[0].replace("K", "000").replace("M", "000000"))
                 except: pass
             elif txt.lower().endswith("views"):
-                try: data["views"] = int(txt.split()[0])
+                try: data["views"] = int(txt.split()[0].replace("K", "000").replace("M", "000000"))
                 except: pass
 
         thumb = soup.find("meta", attrs={"property": "og:image"})
@@ -92,7 +93,7 @@ def fetch_reel_data(url):
     return data
 
 # UI: input multiple URLs
-urls_text = st.text_area("📎 Reel URLs (one per line)", height=200)
+urls_text = st.text_area("📌 Reel URLs (one per line)", height=200)
 urls = [u.strip() for u in urls_text.split("\n") if u.strip()]
 
 if st.button("Analyze Reels"):
@@ -105,22 +106,21 @@ if st.button("Analyze Reels"):
                 results.append(fetch_reel_data(url))
 
         if results:
-            top_likes = max(results, key=lambda r: (isinstance(r["likes"], int), r["likes"]))
-            top_views = max(results, key=lambda r: (isinstance(r["views"], int), r["views"]))
+            top_likes = max(results, key=lambda r: r["likes"])
+            top_views = max(results, key=lambda r: r["views"])
 
             st.subheader("🎯 Top Performers")
             st.markdown(f"**By Likes:** ❤️ — [link]({top_likes['url']})")
             if top_likes["thumbnail"]: st.image(top_likes["thumbnail"], width=300)
             st.markdown("---")
-            st.markdown(f"**By Views:** 👀 — [link]({top_views['url']})")
+            st.markdown(f"**By Views:** 👁 — [link]({top_views['url']})")
             if top_views["thumbnail"]: st.image(top_views["thumbnail"], width=300)
 
             st.divider()
             st.subheader("📋 All Results")
             for r in results:
-                st.markdown(f"**URL**: [link]{r['url']}")
-                #st.markdown(f"❤️ Likes: {r['likes']} | 👀 Views: {r['views']}")
-                st.markdown(f"📝 Reason: {r['caption']}")
+                st.markdown(f"**URL**: [link]({r['url']})")
+                st.markdown(f"📄 Caption: {r['caption']}")
                 if r["thumbnail"]: st.image(r["thumbnail"], width=250)
                 st.markdown("---")
         else:

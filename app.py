@@ -191,6 +191,9 @@ if st.button("Analyze Reels"):
             if top_reel["thumbnail"]:
                 st.image(top_reel["thumbnail"], width=300)
 
+            insight = generate_insight(top_reel["likes_num"])
+            st.markdown(f"🧠 **Insight:** {insight}")
+
             st.divider()
             st.subheader("📋 All Results")
             for r in results:

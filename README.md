@@ -42,12 +42,6 @@ A web app that allows users to log in, paste multiple Instagram Reel URLs, and g
 
 ---
 
-## 📷 Example Insight
-
-> 💥 Very viral — massive reach, likely boosted by shares, high retention, or celebrity creator.
-
----
-
 ## 🧑‍💻 Local Setup
 
 ```bash

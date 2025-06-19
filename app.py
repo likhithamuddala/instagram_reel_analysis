@@ -11,6 +11,27 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.username = ""
 
+# Performance insight generator
+def generate_insight(likes):
+    if likes < 100:
+        return "🐢 Low visibility — possibly just posted or missing hashtags, reach is very limited."
+    elif likes < 1000:
+        return "🚧 New or niche content — likely a small follower base or content yet to be discovered."
+    elif likes < 10000:
+        return "📈 Moderate engagement — might be reaching a specific audience with decent interaction."
+    elif likes < 50000:
+        return "💡 Good performance — likely due to relevant hashtags, appealing visuals, or a semi-viral push."
+    elif likes < 90000:
+        return "🚀 Strong content — possibly using trending audio, good editing, or posted at the right time."
+    elif likes < 200000:
+        return "🔥 Viral reel — high engagement and visibility, possibly featured in explore or trending."
+    elif likes < 500000:
+        return "💥 Very viral — massive reach, likely boosted by shares, high retention, or celebrity creator."
+    elif likes < 1000000:
+        return "🌍 Explosive reach — global audience impact, frequently reshared, possibly cross-platform trending."
+    else:
+        return "👑 Ultra-viral content — mega influencer or cultural moment. This is the top 1% of reels on Instagram."
+
 # Auth UI
 def show_login():
     st.subheader("🔐 Login")
@@ -159,6 +180,13 @@ if st.button("Analyze Reels"):
 
             st.subheader("🎯 Top Performers")
             st.markdown(f"**By Likes:** ❤️ {top_reel['likes']} — [link]({top_reel['url']})")
+            if top_reel["thumbnail"]:
+                st.image(top_reel["thumbnail"], width=300)
+
+            insight = generate_insight(top_reel["likes_num"])
+            st.markdown(f"🧠 **Insight:** {insight}")
+
+            st.markdown("---")
             st.markdown(f"**By Views:** 👀 {top_reel['views']} — [link]({top_reel['url']})")
             if top_reel["thumbnail"]:
                 st.image(top_reel["thumbnail"], width=300)

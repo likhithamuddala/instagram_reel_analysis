@@ -1,88 +1,57 @@
-📊 Instagram Reel Analyzer
-This is a Streamlit-based web application that analyzes the performance of Instagram Reels based on the number of likes. It provides insights into how well each reel is performing and includes user authentication using email.
+# 📊 Instagram Reel Analyzer
 
-🚀 Features
-🔐 Email-based user registration, login, and account deletion
+A web app that allows users to log in, paste multiple Instagram Reel URLs, and get an analysis of each reel’s likes, views, and caption. It also highlights the top-performing reel based on likes and provides an automated performance **insight**.
 
-📎 Input multiple Instagram Reel URLs (one per line)
+## 🌐 Live Demo
+[https://instagram-reel-analysis.onrender.com].
 
-📥 Fetches like counts using Selenium
+---
 
-📈 Generates charts and insights based on like counts
+## 🚀 Features
 
-📌 Detects invalid or unsupported URLs
+- 🔐 **User Authentication** (Register, Login, Delete Account)
+- 📥 **Paste multiple Instagram Reel URLs**
+- 📈 **Analyze Likes and Views** from each reel
+- 🏆 **Highlight Top Performer** by Likes
+- 🧠 **Insight generator** explains the reason for the top reel's success
+- 📝 **View Captions and Thumbnails**
+- ☁️ **Deployed on Render**
 
-🏆 Highlights the top-performing reel with a summary
+---
 
-🛠️ Tech Stack
-Python
+## 🛠️ Tech Stack
 
-Streamlit for UI
+- **Frontend**: [Streamlit](https://streamlit.io/)
+- **Backend**: Python, BeautifulSoup, Requests
+- **Database**: SQLite (user credentials stored securely)
+- **Deployment**: Render.com
+- **Auth Module**: Custom lightweight authentication
 
-Selenium for web scraping
+---
 
-SQLite for user authentication
+## 🧪 How It Works
 
-Pandas for data handling
+1. User logs in or registers
+2. User pastes one or more **Instagram Reel URLs** into the text box
+3. The app fetches:
+   - Reel thumbnail
+   - Reel caption
+   - Likes and Views (from caption or page content)
+4. It highlights the **top reel** by likes, along with an **insight** based on engagement level
+5. All reels are shown in a list with their data
 
-Chrome WebDriver via webdriver-manager
+---
 
-🔧 Installation
-1. Clone the Repository
-bash
-Copy code
-git clone https://github.com/yourusername/instagram-reel-analyzer.git
-cd instagram-reel-analyzer
-2. Create a Virtual Environment (Optional but recommended)
-bash
-Copy code
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-3. Install Dependencies
-bash
-Copy code
+## 📷 Example Insight
+
+> 💥 Very viral — massive reach, likely boosted by shares, high retention, or celebrity creator.
+
+---
+
+## 🧑‍💻 Local Setup
+
+```bash
+git clone https://github.com/likhithamuddala/instagram_reel_analysis.git
+cd instagram_reel_analysis
 pip install -r requirements.txt
-▶️ Run the App Locally
-bash
-Copy code
 streamlit run app.py
-The app will launch in your browser at http://localhost:8501.
-
-📁 Project Structure
-graphql
-Copy code
-instagram-reel-analyzer/
-│
-├── app.py              # Main Streamlit app
-├── auth.py             # Handles user login/registration
-├── users.db            # SQLite database for users
-├── requirements.txt    # Required packages
-└── README.md           # Project documentation
-
-📌 Notes
-Reels are fetched using headless Chrome via Selenium.
-
-Due to Instagram’s privacy policies, only like counts are shown — not views.
-
-You must be logged in to analyze reels.
-
-If Instagram structure changes, scraping logic might need updates.
-
-🧪 Example Reels Format
-text
-
-Copy code
-https://www.instagram.com/reel/DKZ0YRPzDBz/
-
-https://www.instagram.com/reel/DK9oEIPvECT/
-
-📦 Deployment Options
-✅ Deploy on Streamlit Cloud (GUI-based)
-
-✅ Use Render/Railway for Selenium support (Docker recommended)
-
-❌ Streamlit Cloud may not support Selenium on all reels due to Instagram blocking cloud IPs
-
-📬 Contact
-Built by Likhitha Muddala
-GitHub: github.com/likhithamuddala

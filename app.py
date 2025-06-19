@@ -1,4 +1,5 @@
 import streamlit as st
+import toml
 import requests
 import re
 from bs4 import BeautifulSoup
@@ -64,62 +65,64 @@ st.set_page_config(page_title="Instagram Reel Analyzer", layout="centered")
 st.title("📊 Instagram Reel Analyzer")
 st.write("Paste multiple **Instagram Reel URLs** below (one per line) to analyze performance.")
 
-# Convert "1.2k" or "3M" into integer values
 def normalize_count(text):
+    """Converts '1.2k' or '3.1M' into integers like 1200 or 3100000."""
     if not isinstance(text, str):
         return 0
-    text = text.lower().replace(",", "").strip()
+    text = text.strip().lower().replace(",", "")
     match = re.match(r"([\d\.]+)([km]?)", text)
     if not match:
         return 0
     num, suffix = match.groups()
-    try:
-        num = float(num)
-        if suffix == 'k':
-            num *= 1000
-        elif suffix == 'm':
-            num *= 1000000
-        return int(num)
-    except:
-        return 0
+    num = float(num)
+    if suffix == 'k':
+        num *= 1_000
+    elif suffix == 'm':
+        num *= 1_000_000
+    return int(num)
 
-# Extract reel data
 def fetch_reel_data(url):
     headers = {"User-Agent": "Mozilla/5.0"}
     response = requests.get(url, headers=headers)
-    data = {"url": url, "likes": "N/A", "views": "N/A", "caption": "No caption", "thumbnail": "", "likes_num": 0, "views_num": 0}
+    data = {
+        "url": url,
+        "likes": "N/A",
+        "views": "N/A",
+        "caption": "No caption",
+        "thumbnail": "",
+        "likes_num": 0,
+        "views_num": 0
+    }
 
     if response.status_code == 200:
         soup = BeautifulSoup(response.text, "html.parser")
 
-        # Extract caption
-        desc = soup.find("meta", attrs={"property": "og:description"})
-        if desc:
-            caption = desc["content"]
-            data["caption"] = caption
+        # Scan all spans for likes/views
+        spans = soup.find_all("span")
+        for span in spans:
+            txt = span.text.strip().replace(",", "")
+            if txt.lower().endswith("likes"):
+                count = txt.split()[0]
+                data["likes"] = count
+                data["likes_num"] = normalize_count(count)
+            elif txt.lower().endswith("views"):
+                count = txt.split()[0]
+                data["views"] = count
+                data["views_num"] = normalize_count(count)
 
-            # Extract likes
-            like_match = re.search(r"([\d.,]+[kKmM]?) likes", caption)
-            if like_match:
-                raw = like_match.group(1)
-                data["likes"] = raw
-                data["likes_num"] = normalize_count(raw)
-
-            # Extract views
-            view_match = re.search(r"([\d.,]+[kKmM]?) views", caption)
-            if view_match:
-                raw = view_match.group(1)
-                data["views"] = raw
-                data["views_num"] = normalize_count(raw)
-
-        # Extract thumbnail
+        # Thumbnail
         thumb = soup.find("meta", attrs={"property": "og:image"})
         if thumb:
             data["thumbnail"] = thumb["content"]
 
+        # Caption
+        cap = soup.find("meta", attrs={"property": "og:description"})
+        if cap:
+            data["caption"] = cap["content"]
+
     return data
 
-# Input section
+# UI: input multiple URLs
 urls_text = st.text_area("📎 Reel URLs (one per line)", height=200)
 urls = [u.strip() for u in urls_text.split("\n") if u.strip()]
 
@@ -133,17 +136,20 @@ if st.button("Analyze Reels"):
                 results.append(fetch_reel_data(url))
 
         if results:
+            # Sort by likes/views numerically
             top_likes = max(results, key=lambda r: r["likes_num"])
             top_views = max(results, key=lambda r: r["views_num"])
 
             st.subheader("🎯 Top Performers")
-            st.markdown(f"**By Likes:** ❤️ {top_likes['likes']} — [link]({top_likes['url']})")
-            if top_likes["thumbnail"]:
-                st.image(top_likes["thumbnail"], width=300)
-            st.markdown("---")
-            st.markdown(f"**By Views:** 👀 {top_views['views']} — [link]({top_views['url']})")
-            if top_views["thumbnail"]:
-                st.image(top_views["thumbnail"], width=300)
+            if top_likes["likes"] != "N/A":
+                st.markdown(f"**By Likes:** ❤️ {top_likes['likes']} — [link]({top_likes['url']})")
+                if top_likes["thumbnail"]:
+                    st.image(top_likes["thumbnail"], width=300)
+                st.markdown("---")
+            if top_views["views"] != "N/A":
+                st.markdown(f"**By Views:** 👀 {top_views['views']} — [link]({top_views['url']})")
+                if top_views["thumbnail"]:
+                    st.image(top_views["thumbnail"], width=300)
 
             st.divider()
             st.subheader("📋 All Results")

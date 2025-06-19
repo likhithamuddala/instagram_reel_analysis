@@ -91,8 +91,7 @@ def fetch_reel_data(url):
         "views": "N/A",
         "caption": "No caption",
         "thumbnail": "",
-        "likes_num": 0,
-        "views_num": 0
+        "likes_num": 0
     }
 
     if response.status_code == 200:
@@ -121,9 +120,8 @@ def fetch_reel_data(url):
             if view_match:
                 view_val = view_match.group(1)
                 data["views"] = view_val
-                data["views_num"] = normalize_count(view_val)
 
-        # Optional span fallback (less reliable)
+        # Optional span fallback
         spans = soup.find_all("span")
         for span in spans:
             txt = span.text.strip().replace(",", "")
@@ -138,7 +136,6 @@ def fetch_reel_data(url):
                 try:
                     count = txt.split()[0]
                     data["views"] = count
-                    data["views_num"] = normalize_count(count)
                 except:
                     pass
 
@@ -158,18 +155,13 @@ if st.button("Analyze Reels"):
                 results.append(fetch_reel_data(url))
 
         if results:
-            top_likes = max(results, key=lambda r: r["likes_num"])
-            top_views = max(results, key=lambda r: r["views_num"])
+            top_reel = max(results, key=lambda r: r["likes_num"])
 
             st.subheader("🎯 Top Performers")
-            st.markdown(f"**By Likes:** ❤️ {top_likes['likes']} — [link]({top_likes['url']})")
-            if top_likes["thumbnail"]:
-                st.image(top_likes["thumbnail"], width=300)
-
-            st.markdown("---")
-            st.markdown(f"**By Views:** 👀 {top_views['views']} — [link]({top_views['url']})")
-            if top_views["thumbnail"]:
-                st.image(top_views["thumbnail"], width=300)
+            st.markdown(f"**By Likes:** ❤️ {top_reel['likes']} — [link]({top_reel['url']})")
+            st.markdown(f"**By Views:** 👀 {top_reel['views']} — [link]({top_reel['url']})")
+            if top_reel["thumbnail"]:
+                st.image(top_reel["thumbnail"], width=300)
 
             st.divider()
             st.subheader("📋 All Results")

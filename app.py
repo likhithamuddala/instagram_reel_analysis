@@ -76,7 +76,7 @@ if not st.session_state.logged_in:
 st.sidebar.success(f"👤 Logged in as: {st.session_state.username}")
 if st.sidebar.button("Logout"):
     st.session_state.logged_in = False
-    st.experimental_rerun()
+    st.rerun()
 if st.sidebar.button("Delete Account"):
     show_delete()
     st.stop()

@@ -3,7 +3,7 @@
 A web app that allows users to log in, paste multiple Instagram Reel URLs, and get an analysis of each reel’s likes, views, and caption. It also highlights the top-performing reel based on likes and provides an automated performance **insight**.
 
 ## 🌐 Live Demo
-[https://instagram-reel-analysis.onrender.com].
+[https://instagram-reel-analysis.onrender.com/]
 
 ---
 
